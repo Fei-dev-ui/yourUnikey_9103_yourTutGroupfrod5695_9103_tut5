@@ -1,18 +1,36 @@
+// =====================================================
+// TIME-BASED MECHANIC: FOUR-SEASON SKY
+// =====================================================
+// This p5.js animation changes between spring, summer, autumn and winter.
+// AI acknowledgement: ChatGPT helped develop and refine the animation code,
+// including seasonal timing, colour blending and moving visual elements.
+// The design was adjusted through multiple iterations.
+// Note for group integration: this standalone version contains setup() and
+// draw(); the final group project should have only one shared setup() and draw().
+
+// Horizontal offset used to animate the large clouds.
 let cloudMove = 0;
 
+// Set up a 600 x 700 canvas and use degrees for rotations and sine angles.
 function setup() {
   createCanvas(600, 700);
   angleMode(DEGREES);
 }
 
+// Update the sky and its moving elements once per frame.
 function draw() {
+  // sin() makes the large clouds drift left and right by up to 20 pixels.
   cloudMove = sin(frameCount * 0.4) * 20;
+  // The remainder (%) repeats the four-season sequence every 1500 frames
+  // (approximately 25 seconds when the sketch runs at 60 frames per second).
   let seasonFrame = frameCount % 1500;
 
+  // SPRING: show the blue sky and spring clouds at full opacity.
   if (seasonFrame < 225) {
     drawSpringSky();
     drawSpringClouds(255);
 
+  // SPRING TO SUMMER: gradually fade spring clouds out and the sun in.
   } else if (seasonFrame < 375) {
     let amount = (seasonFrame - 225) / 150;
 
@@ -24,6 +42,7 @@ function draw() {
       amount
     );
 
+    // Alpha controls transparency: 255 = visible, 0 = invisible.
     let springAlpha = lerp(255, 0, amount);
     drawSpringClouds(springAlpha);
 
@@ -33,11 +52,13 @@ function draw() {
     let summerAlpha = lerp(0, 255, amount);
     drawSummerClouds(summerAlpha);
 
+  // SUMMER: brighter blue sky, moving sun and a smaller set of clouds.
   } else if (seasonFrame < 600) {
     drawSummerSky();
     drawMovingSun(seasonFrame, 255);
     drawSummerClouds(255);
 
+  // SUMMER TO AUTUMN: blend blue into orange and fade in falling leaves.
   } else if (seasonFrame < 750) {
     let amount = (seasonFrame - 600) / 150;
 
@@ -59,13 +80,16 @@ function draw() {
     drawAutumnClouds(autumnAlpha);
     drawAutumnLeaves(autumnAlpha);
 
+  // AUTUMN: warm sky, autumn clouds and rotating falling leaves.
   } else if (seasonFrame < 915) {
     drawAutumnSky();
     drawAutumnClouds(255);
     drawAutumnLeaves(255);
 
+  // AUTUMN TO WINTER: gradually replace leaves with snow.
   } else if (seasonFrame < 1125) {
     let amount = (seasonFrame - 915) / 210;
+    // Smoothstep easing slows the colour/opacity changes at both ends.
     let smoothAmount = amount * amount * (3 - 2 * amount);
 
     drawSkyTransition(
@@ -84,13 +108,16 @@ function draw() {
     drawWinterClouds(winterAlpha);
     drawSnow(winterAlpha);
 
+  // WINTER: grey-blue sky, darker clouds and falling snow.
   } else if (seasonFrame < 1290) {
     drawWinterSky();
     drawWinterClouds(255);
     drawSnow(255);
 
   } else {
+    // WINTER TO SPRING: smoothly fade snow out and spring clouds in.
     let amount = (seasonFrame - 1290) / 210;
+    // Smoothstep easing slows the colour/opacity changes at both ends.
     let smoothAmount = amount * amount * (3 - 2 * amount);
 
     drawSkyTransition(
@@ -115,6 +142,8 @@ function draw() {
 // GRADIENT SKY
 // =====================================================
 
+// Draw a vertical gradient one horizontal line at a time.
+// lerpColor() blends from the top colour to the bottom colour.
 function drawGradientSky(topColor, bottomColor) {
   for (let y = 0; y < height; y++) {
     let amount = map(y, 0, height, 0, 1);
@@ -130,6 +159,8 @@ function drawGradientSky(topColor, bottomColor) {
 // SKY TRANSITION
 // =====================================================
 
+// Blend the old season's top/bottom colours into the new season's colours.
+// amount goes from 0 (old season) to 1 (new season).
 function drawSkyTransition(
   oldTop,
   oldBottom,
@@ -149,6 +180,7 @@ function drawSkyTransition(
 // Darker spring blue
 // =====================================================
 
+// Spring uses a deeper blue at the top and a pale blue at the bottom.
 function drawSpringSky() {
   let topColor = color(55, 125, 190);
   let bottomColor = color(145, 195, 225);
@@ -161,6 +193,7 @@ function drawSpringSky() {
 // SUMMER SKY
 // =====================================================
 
+// Summer has lighter, brighter blues than spring.
 function drawSummerSky() {
   let topColor = color(65, 150, 220);
   let bottomColor = color(170, 225, 245);
@@ -173,6 +206,7 @@ function drawSummerSky() {
 // AUTUMN SKY
 // =====================================================
 
+// Orange and gold tones suggest an autumn atmosphere.
 function drawAutumnSky() {
   let topColor = color(185, 105, 55);
   let bottomColor = color(245, 190, 115);
@@ -185,6 +219,7 @@ function drawAutumnSky() {
 // WINTER SKY
 // =====================================================
 
+// Desaturated blue-grey colours create a colder winter atmosphere.
 function drawWinterSky() {
   let topColor = color(90, 115, 145);
   let bottomColor = color(180, 195, 210);
@@ -197,6 +232,9 @@ function drawWinterSky() {
 // MOVING SUN
 // =====================================================
 
+// Move the sun across the sky during the spring/summer/autumn part of the cycle.
+// Its y-position follows a curved path; layered ellipses add a soft glow.
+// sunAlpha fades the sun in and out during seasonal transitions.
 function drawMovingSun(seasonFrame, sunAlpha) {
   let sunProgress = map(
     seasonFrame,
@@ -272,6 +310,9 @@ function drawMovingSun(seasonFrame, sunAlpha) {
 // SPRING CLOUDS
 // =====================================================
 
+// Arrange the spring clouds at hand-chosen sizes and positions.
+// The seven large clouds use cloudMove; medium and small clouds stay in place.
+// alphaValue lets this entire cloud layer fade during transitions.
 function drawSpringClouds(alphaValue) {
   let bigCloudColor =
     color(250, 248, 240, alphaValue);
@@ -549,6 +590,7 @@ function drawSpringClouds(alphaValue) {
 // SUMMER CLOUDS
 // =====================================================
 
+// Summer keeps fewer bright clouds so more blue sky is visible.
 function drawSummerClouds(alphaValue) {
   let summerCloudColor =
     color(255, 253, 245, alphaValue);
@@ -605,6 +647,7 @@ function drawSummerClouds(alphaValue) {
 // AUTUMN CLOUDS
 // =====================================================
 
+// Warm brown cloud colours support the orange autumn sky.
 function drawAutumnClouds(alphaValue) {
   let autumnCloudColor =
     color(225, 190, 160, alphaValue);
@@ -661,6 +704,9 @@ function drawAutumnClouds(alphaValue) {
 // AUTUMN LEAVES
 // =====================================================
 
+// Animate eight falling leaves with different speeds and starting offsets.
+// The modulo (%) makes each leaf reappear above the canvas after falling.
+// Sine offsets sway the leaves left and right instead of falling straight down.
 function drawAutumnLeaves(alphaValue) {
   let y1 =
     (frameCount * 0.50) % 760 - 30;
@@ -782,6 +828,8 @@ function drawAutumnLeaves(alphaValue) {
 // ONE AUTUMN LEAF
 // =====================================================
 
+// Draw one leaf at a given position, size, rotation and colour.
+// push()/pop() keep this rotation from affecting the rest of the scene.
 function drawLeaf(
   x,
   y,
@@ -821,6 +869,7 @@ function drawLeaf(
 // WINTER CLOUDS
 // =====================================================
 
+// Winter clouds use cooler grey tones and a denser arrangement.
 function drawWinterClouds(alphaValue) {
   let winterCloudColor =
     color(195, 205, 215, alphaValue);
@@ -895,6 +944,8 @@ function drawWinterClouds(alphaValue) {
 // SNOW
 // =====================================================
 
+// Draw snowflakes at different horizontal positions, falling speeds and sizes.
+// alphaValue fades all snowflakes in/out as seasons change.
 function drawSnow(alphaValue) {
   noStroke();
 
@@ -1013,6 +1064,7 @@ function drawSnow(alphaValue) {
 // ONE SNOWFLAKE
 // =====================================================
 
+// Draw one snowflake and use sin() for a small sideways drift.
 function drawSnowflake(
   x,
   y,
@@ -1035,6 +1087,8 @@ function drawSnowflake(
 // REFERENCE CLOUD A
 // =====================================================
 
+// Cloud shape A: overlapping ellipses form the cloud and its shaded underside.
+// x/y = position, s = scale, angle = rotation.
 function drawReferenceCloudA(
   x,
   y,
@@ -1073,6 +1127,7 @@ function drawReferenceCloudA(
 // REFERENCE CLOUD B
 // =====================================================
 
+// Cloud shape B: a second cloud silhouette built with ellipses.
 function drawReferenceCloudB(
   x,
   y,
@@ -1112,6 +1167,7 @@ function drawReferenceCloudB(
 // REFERENCE CLOUD C
 // =====================================================
 
+// Cloud shape C: a slimmer cloud silhouette with a shadow layer.
 function drawReferenceCloudC(
   x,
   y,
@@ -1151,6 +1207,7 @@ function drawReferenceCloudC(
 // BIG CLOUD 1
 // =====================================================
 
+// Reuse reference cloud A for the first large cloud.
 function drawBigCloud1(
   x,
   y,
@@ -1174,6 +1231,7 @@ function drawBigCloud1(
 // BIG CLOUD 2
 // =====================================================
 
+// Reuse reference cloud B for the second large cloud.
 function drawBigCloud2(
   x,
   y,
@@ -1197,6 +1255,7 @@ function drawBigCloud2(
 // BIG CLOUD 3
 // =====================================================
 
+// Reuse reference cloud C for the third large cloud.
 function drawBigCloud3(
   x,
   y,
@@ -1220,6 +1279,7 @@ function drawBigCloud3(
 // BIG CLOUD 4
 // =====================================================
 
+// Draw an additional large cloud shape with overlapping ellipses.
 function drawBigCloud4(
   x,
   y,
@@ -1259,6 +1319,7 @@ function drawBigCloud4(
 // BIG CLOUD 5
 // =====================================================
 
+// Reuse cloud A with a different position, size and rotation.
 function drawBigCloud5(
   x,
   y,
@@ -1282,6 +1343,7 @@ function drawBigCloud5(
 // BIG CLOUD 6
 // =====================================================
 
+// Reuse cloud C with a different position, size and rotation.
 function drawBigCloud6(
   x,
   y,
@@ -1305,6 +1367,7 @@ function drawBigCloud6(
 // BIG CLOUD 7
 // =====================================================
 
+// Draw a narrower custom cloud silhouette.
 function drawBigCloud7(
   x,
   y,
@@ -1344,6 +1407,7 @@ function drawBigCloud7(
 // MEDIUM CLOUD
 // =====================================================
 
+// Medium cloud: five ellipses grouped into a compact silhouette.
 function drawMediumCloud(
   x,
   y,
@@ -1372,6 +1436,7 @@ function drawMediumCloud(
 // SMALL CLOUD
 // =====================================================
 
+// Small cloud: four overlapping ellipses.
 function drawSmallCloud(
   x,
   y,
